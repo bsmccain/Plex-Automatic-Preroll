@@ -1,7 +1,6 @@
 #!/usr/bin/python
 import subprocess
 import sys
-import os
 try:
     from plexapi.server import PlexServer
 
