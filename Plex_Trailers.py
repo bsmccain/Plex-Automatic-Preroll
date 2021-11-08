@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import subprocess
 import sys
+import os
 try:
     from plexapi.server import PlexServer
 
@@ -278,6 +279,16 @@ def main():
             else:
                 print("Error: No video paths configured after applying videos matching today's date and master if enabled!")
                 raise Exception("No video paths configured after applying videos matching today's date and master if enabled!")
+        
+        for pr in prerolls.replace(',',';').split(';'):
+            if os.path.isdir(pr):
+                with os.scandir(pr) as dir:
+                    files = ''
+                    for entry in dir:
+                        if entry.is_file():
+                            files = files + ';' + entry.path
+                    prerolls = prerolls.replace(pr,files.lstrip(';'))
+
         plex.settings.get('cinemaTrailersPrerollID').set(prerolls)    
         plex.settings.save()
         print('Pre-roll updated')
