@@ -1,3 +1,6 @@
+# This project is now archived please use link below for new version
+https://github.com/TheHumanRobot/Automatic-Pre-roll-GUI
+
 # Automatic-Preroll
 Automated script to change out plex preroll every month
 
