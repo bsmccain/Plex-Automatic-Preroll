@@ -86,7 +86,7 @@ crontab -e
 **Windows:**
 
 Verify python is added to the PATH environmental variable
-Search for task schedular and open it. Click "Create Basic Task" and enter a name and description. Then set the task to run monthly. Choose "Start a program" then for "Program/script" add the full path of the Plex_Trailers.py script Click "Finish" and you are done!
+Search for task scheduler and open it. Click "Create Basic Task" and enter a name and description. Then set the task to run monthly. Choose "Start a program" then for "Program/script" add the full path of the Plex_Trailers.py script Click "Finish" and you are done!
 
 
 ## Running For The First Time
