@@ -26,7 +26,7 @@ That will install all the needed packages
 https://smarthomepursuits.com/configure-plex-automatic-prerolls-on-windows/
 
 ## Settings
-The config.ini file is created through the script for ease of use. Optionaly you can just create it by hand by filling in the exampleconfig.ini file and then renaming it to config.ini. If you need to update it than you can edit the config.ini file.
+The config.ini file is created through the script for ease of use. Optionally you can just create it by hand by filling in the exampleconfig.ini file and then renaming it to config.ini. If you need to update it then you can edit the config.ini file.
 
 Below is an example of the config file:
 
@@ -86,7 +86,7 @@ crontab -e
 **Windows:**
 
 Verify python is added to the PATH environmental variable
-Search for task schedular and open it. Click "Create Basic Task" and enter a name and description. Then set the task to run monthly. Choose "Start a program" then for "Program/script" add the full path of the Plex_Trailers.py script Click "Finish" and you are done!
+Search for task scheduler and open it. Click "Create Basic Task" and enter a name and description. Then set the task to run monthly. Choose "Start a program" then for "Program/script" add the full path of the Plex_Trailers.py script Click "Finish" and you are done!
 
 
 ## Running For The First Time
