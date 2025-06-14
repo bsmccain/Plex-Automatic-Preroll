@@ -5,10 +5,8 @@ https://github.com/TheHumanRobot/Automatic-Pre-roll-GUI
 Automated script to change out plex preroll every month
 
 ## Requirements
--[Python 3.7+](https://www.python.org/)
-(Probably works on a lower version haven't tested)
-
--[PlexAPI](https://github.com/pkkid/python-plexapi)
+* [Python 3.7+](https://www.python.org/) (probably works on a lower version, but it hasn't been tested)
+* [PlexAPI](https://github.com/pkkid/python-plexapi)
 
 
 
@@ -19,7 +17,9 @@ First make sure you have Python installed version 3.7 and above. Next run:
 ```
 pip install -r requirements.txt
 ```
-That will install all the needed packages 
+That will install all the needed packages, including PlexAPI. If you run the
+script without installing these requirements, it will exit with an ImportError
+prompting you to install them.
 
 ## Step by step instructions by Danny at smarthomepursuits.com
 
