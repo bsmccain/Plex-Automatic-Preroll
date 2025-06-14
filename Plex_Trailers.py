@@ -1,29 +1,18 @@
 #!/usr/bin/python
-import subprocess
-import sys
+"""Update Plex preroll trailers based on the current month."""
+
 try:
     from plexapi.server import PlexServer
-
-except:
-    print('\033[91mERROR:\033[0m PlexAPI is not installed.')
-    x = input("Do you want to install it? y/n:")
-    if x == 'y':
-        subprocess.check_call([sys.executable, "-m", "pip", "install", 'PlexAPI==4.2.0'])
-        from plexapi.server import PlexServer
-    elif x == 'n':
-        sys.exit()
+except ImportError as exc:
+    raise ImportError(
+        "PlexAPI is required. Install dependencies with 'pip install -r requirements.txt'."
+    ) from exc
 
 import requests
-from urllib.parse import quote_plus, urlencode
 from datetime import datetime
-
-from plexapi import media, utils, settings, library
-from plexapi.base import Playable, PlexPartialObject
-from plexapi.exceptions import BadRequest, NotFound
 
 from argparse import ArgumentParser
 import os
-import random
 import pathlib
 from configparser import *
 
