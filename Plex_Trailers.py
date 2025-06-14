@@ -1,93 +1,94 @@
 #!/usr/bin/python
-import subprocess
-import sys
+"""Update Plex preroll trailers based on the current month."""
+
+import logging
+
 try:
     from plexapi.server import PlexServer
-
-except:
-    print('\033[91mERROR:\033[0m PlexAPI is not installed.')
-    x = input("Do you want to install it? y/n:")
-    if x == 'y':
-        subprocess.check_call([sys.executable, "-m", "pip", "install", 'PlexAPI==4.2.0'])
-        from plexapi.server import PlexServer
-    elif x == 'n':
-        sys.exit()
+except ImportError as exc:
+    raise ImportError(
+        "PlexAPI is required. Install dependencies with 'pip install -r requirements.txt'."
+    ) from exc
 
 import requests
-from urllib.parse import quote_plus, urlencode
 from datetime import datetime
-
-from plexapi import media, utils, settings, library
-from plexapi.base import Playable, PlexPartialObject
-from plexapi.exceptions import BadRequest, NotFound
 
 from argparse import ArgumentParser
 import os
-import random
 import pathlib
-from configparser import *
+from configparser import ConfigParser
 
-print('###########################')
-print('#                         #')
-print('#  Plex Monthly Preroll!  #')
-print('#                         #')
-print('###########################' + '\n')
 
-print('Pre-roll updating...')
-file = pathlib.Path("config.ini")
-if file.exists():
-    file1 = open("config.ini","r")
-else:
-    print('No config file found! Lets set one up!')
-    file1 = open("config.ini","w+")
-    file1.write("[SERVER]" + "\n")
-    x = input("Enter your (https) plex url:")
-    file1.write("plex_url = " + x + "\n")
-    x = input("Enter your plex token: (not sure what that is go here: https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/)")
-    file1.write("plex_token = " + x + "\n\n")
-    file1.write("[MONTHS]" + "\n")
-    print('Make sure plex can access the path you enter!')
-    x = input("Enter the January trailer path:")
-    file1.write("Jan = " + x + "\n")
-    x = input("Enter the February trailer path:")
-    file1.write("Feb = " + x + "\n")
-    x = input("Enter the March trailer path:")
-    file1.write("Mar = " + x + "\n")
-    x = input("Enter the April trailer path:")
-    file1.write("Apr = " + x + "\n")
-    x = input("Enter the May trailer path:")
-    file1.write("May = " + x + "\n")
-    x = input("Enter the June trailer path:")
-    file1.write("Jun = " + x + "\n")
-    x = input("Enter the July trailer path:")
-    file1.write("Jul = " + x + "\n")
-    x = input("Enter the August trailer path:")
-    file1.write("Aug = " + x + "\n")
-    x = input("Enter the September trailer path:")
-    file1.write("Sep = " + x + "\n")
-    x = input("Enter the October trailer path:")
-    file1.write("Oct = " + x + "\n")
-    x = input("Enter the November trailer path:")
-    file1.write("Nov = " + x + "\n")
-    x = input("Enter the December trailer path:")
-    file1.write("Dec = " + x + "\n\n")
-    file1.write("[PATHS]" + "\n")
-    x = input("Enter the Host directory path: (Path where your PreRoll folders are located)")
-    file1.write("host_dir = " + x + "\n")
-    x = input("OPTIONAL: Enter the Docker directory path: (Path where your PreRoll folders are located when using docker. (Path that Plex uses))")
-    file1.write("docker_dir = " + x + "\n")
-    print('config file (config.ini) created')
-    file1.close()
-    file1 = open("config.ini","r")
+def configure_logging(level_name="INFO", log_file=None):
+    level = getattr(logging, level_name.upper(), logging.INFO)
+    logging.basicConfig(
+        level=level,
+        filename=log_file,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+    )
+
+
+def show_banner():
+    logging.info("###########################")
+    logging.info("#                         #")
+    logging.info("#  Plex Monthly Preroll!  #")
+    logging.info("#                         #")
+    logging.info("###########################" + "\n")
+    logging.info("Pre-roll updating...")
 
 def getArguments():
     name = 'Monthly-Plex-Preroll-Trailers'
     version = '1.0.1'
     parser = ArgumentParser(description='{}: Set monthly trailers for Plex'.format(name))
     parser.add_argument("-v", "--version", action='version', version='{} {}'.format(name, version), help="show the version number and exit")
-    args = parser.parse_args()
+    parser.add_argument("--log-level", default="INFO", help="Set log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)")
+    parser.add_argument("--log-file", help="Path to log file")
+    return parser.parse_args()
 
 def getConfig():
+    config_path = pathlib.Path("config.ini")
+    if not config_path.exists():
+        logging.info('No config file found! Lets set one up!')
+        file1 = open("config.ini","w+")
+        file1.write("[SERVER]\n")
+        x = input("Enter your (https) plex url:")
+        file1.write("plex_url = " + x + "\n")
+        x = input("Enter your plex token: (not sure what that is go here: https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/)")
+        file1.write("plex_token = " + x + "\n\n")
+        file1.write("[MONTHS]\n")
+        logging.info('Make sure plex can access the path you enter!')
+        x = input("Enter the January trailer path:")
+        file1.write("Jan = " + x + "\n")
+        x = input("Enter the February trailer path:")
+        file1.write("Feb = " + x + "\n")
+        x = input("Enter the March trailer path:")
+        file1.write("Mar = " + x + "\n")
+        x = input("Enter the April trailer path:")
+        file1.write("Apr = " + x + "\n")
+        x = input("Enter the May trailer path:")
+        file1.write("May = " + x + "\n")
+        x = input("Enter the June trailer path:")
+        file1.write("Jun = " + x + "\n")
+        x = input("Enter the July trailer path:")
+        file1.write("Jul = " + x + "\n")
+        x = input("Enter the August trailer path:")
+        file1.write("Aug = " + x + "\n")
+        x = input("Enter the September trailer path:")
+        file1.write("Sep = " + x + "\n")
+        x = input("Enter the October trailer path:")
+        file1.write("Oct = " + x + "\n")
+        x = input("Enter the November trailer path:")
+        file1.write("Nov = " + x + "\n")
+        x = input("Enter the December trailer path:")
+        file1.write("Dec = " + x + "\n\n")
+        file1.write("[PATHS]\n")
+        x = input("Enter the Host directory path: (Path where your PreRoll folders are located)")
+        file1.write("host_dir = " + x + "\n")
+        x = input("OPTIONAL: Enter the Docker directory path: (Path where your PreRoll folders are located when using docker. (Path that Plex uses))")
+        file1.write("docker_dir = " + x + "\n")
+        logging.info('config file (config.ini) created')
+        file1.close()
+
     config = ConfigParser()
     config.read(os.path.split(os.path.abspath(__file__))[0]+'/config.ini')
     configdict = {}
@@ -96,15 +97,15 @@ def getConfig():
         if 'plex_url' in config['SERVER']:
             configdict['plex_url'] = config.get('SERVER', 'plex_url')
         else:
-            print('Plex URL not found. Please update your config.')
+            logging.error('Plex URL not found. Please update your config.')
             raise SystemExit
         if 'plex_token' in config['SERVER']:
             configdict['plex_token'] = config.get('SERVER', 'plex_token')
         else:
-            print('Plex token not found. Please update your config.')
+            logging.error('Plex token not found. Please update your config.')
             raise SystemExit     
     else:
-        print('Invalid config. SERVER not found. Please update your config.')
+        logging.error('Invalid config. SERVER not found. Please update your config.')
         raise SystemExit
 
 
@@ -116,10 +117,10 @@ def getConfig():
             else:
                 docker_dir = host_dir
         else:
-            print('host_dir not found in config. Please update your config.')
+            logging.error('host_dir not found in config. Please update your config.')
             raise SystemExit
     else:
-        print('Invalid config. PATHS not found. Please update your config.')
+        logging.error('Invalid config. PATHS not found. Please update your config.')
         raise SystemExit
     
     for month in config['MONTHS']:
@@ -146,6 +147,8 @@ def generatePreRoll(PreRollPath):
 def main():
     # Arguments
     arguments = getArguments()
+    configure_logging(arguments.log_level, arguments.log_file)
+    show_banner()
     # Settings
     config = getConfig()
     if config['plex_url'] is not None: 
@@ -159,9 +162,9 @@ def main():
         if currentMonth in config:
             plex.settings.get('cinemaTrailersPrerollID').set(config[currentMonth])
             plex.settings.save()
-            print(f'Pre-roll updated to {config[currentMonth]}')
+            logging.info(f'Pre-roll updated to {config[currentMonth]}')
         else:
-            print(f'{currentMonth} not found in config. Please update your config. Pre-Roll not updated.')
+            logging.warning(f'{currentMonth} not found in config. Please update your config. Pre-Roll not updated.')
 
 if __name__ == '__main__':
     main()
